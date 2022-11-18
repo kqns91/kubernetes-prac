@@ -104,3 +104,28 @@ minikube delete --all
   - replicasetやPodが削除されても、Podに割り当てられる名前は変わらない。
 - 永続的なストレージの提供
   - RersistentVolumeリソースを使ってそれぞれのPodに個別の永続ストレージを提供する。
+
+### ネットワーキング
+#### Service
+- Nodeに作成されたPodのIPは基本的に不変ではないため、名前解決が必要。
+- Pod間通信での名前解決はServiceが必要。
+- ServiceにはTypeが色々ある。
+
+#### Service Type
+##### ClusterIP
+- デフォルト。
+- Cluster内部のIPで内部のみに公開。
+
+##### NodePort
+- Clusterの各Nodeにポートを割り当て外部からの通信をCluster内部のPodに転送する。
+
+##### LoadBalancer
+- クラウドプロバイダのロードバランシングサービスを使用して、Cluster外部に公開する。
+- EKSでLoadBalancerのServiceを作成するとAWSのCloud Provider Load Balancer ControllerによってCLBまたはNLBが作成される。
+- L4で通信する。
+
+#### Ingress
+- LoadBalancerと同じくPodをCluster外部に公開する。
+- IngressはL7で通信する。
+- Ingressコントローラーを作成しないと、IngressリソースをClusterに作成しただけでは使えない。
+- Ingressコントローラーは環境やプロバイダに合わせて選択する必要がある。
