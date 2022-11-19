@@ -129,3 +129,22 @@ minikube delete --all
 - IngressはL7で通信する。
 - Ingressコントローラーを作成しないと、IngressリソースをClusterに作成しただけでは使えない。
 - Ingressコントローラーは環境やプロバイダに合わせて選択する必要がある。
+
+### Storage/Configリソース
+
+#### Volume
+- Node内部のローカルストレージ、Amazon Elastic Block Store、Google Compute Engineなど外部ストレージを利用可能。
+
+#### Persistent Volume / PersistentVolumeClaim
+- Podとは切り離して単体で作成可能。
+- PersistentVolumeClaimでPodとPersisntentVolumeを紐づける。
+- PersisntentVolumeへのアクセスモード設定が可能。
+
+#### ConfigMap
+- キーバリュー形式でデータをClusterに登録できる。
+- 1MB未満。
+
+#### Secret
+- configMapは平文、secretはbase64でエンコードされる。
+- secretリソースはgitで管理しないか、RBACを使うなどすべき。
+
