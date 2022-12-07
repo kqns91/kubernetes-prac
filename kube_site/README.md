@@ -148,3 +148,38 @@ minikube delete --all
 - configMapは平文、secretはbase64でエンコードされる。
 - secretリソースはgitで管理しないか、RBACを使うなどすべき。
 
+
+## chapter02
+
+### Custom Resources
+- CRDでユーザーが独自にリソースを定義し、CRでそのリソースを作成できる。
+- Custom controllersで定期的に監視し、ユーザーが定義したあるべき状態を維持する。
+
+### Kustomize
+- kubernetesのマニュフェスト管理ツール。
+- 開発、テスト、本番環境など複数の環境の一元管理が目的。
+- 共通リソースと環境固有のリソースに分けて作成。
+- kustomize cliかv1.14以上のkubectlで操作。
+
+### Helm
+- kubernetes専用パッケージマネージャー。
+- chartを操作することでClusterへのリソースの作成、更新、削除、ロールバックなどが可能。
+- Chartによって作成されたインスタンスはリリースと呼ばれる。
+
+```
+brew install helm
+```
+
+- ClusterにReleaseを作成手順
+
+```
+// Chartリポジトリの追加
+helm repo add eks ${HELM_REPOSITORY}
+
+// リポジトリの更新
+helm repo update
+
+// ClusterへのChartのインストール
+helm install
+```
+
