@@ -183,3 +183,145 @@ helm repo update
 helm install
 ```
 
+## chapter03
+
+### Terraformの環境構築
+
+`tfenv`経由でインストール
+
+```
+$ brew install tfenv
+---
+$ tfenv use latest
+---
+$ terraform version
+Terraform v1.3.6
+on darwin_arm64
+```
+
+#### LocalStackインストール(番外編)
+
+書籍ではawsを使っているが、aws環境をローカルにエミュレートして進める。: [参考](https://zenn.dev/shimat/articles/32f5f1dc96f817)
+
+awscli-localをインストール。
+
+```
+$ pip3 install awscli-local
+```
+
+localstackをインストール。
+
+```
+$ git clone https://github.com/localstack/localstack.git
+```
+
+localstackを起動。
+
+```
+$ docker-compose up -d
+```
+```
+$ curl -s "http://127.0.0.1:4566/health" | jq .
+{
+  "features": {
+    "initScripts": "initialized"
+  },
+  "services": {
+    "acm": "available",
+    "apigateway": "available",
+    "cloudformation": "available",
+    "cloudwatch": "available",
+    "config": "available",
+    "dynamodb": "available",
+    "dynamodbstreams": "available",
+    "ec2": "available",
+    "es": "available",
+    "events": "available",
+    "firehose": "available",
+    "iam": "available",
+    "kinesis": "available",
+    "kms": "available",
+    "lambda": "available",
+    "logs": "available",
+    "opensearch": "available",
+    "redshift": "available",
+    "resource-groups": "available",
+    "resourcegroupstaggingapi": "available",
+    "route53": "available",
+    "route53resolver": "available",
+    "s3": "available",
+    "s3control": "available",
+    "secretsmanager": "available",
+    "ses": "available",
+    "sns": "available",
+    "sqs": "available",
+    "ssm": "available",
+    "stepfunctions": "available",
+    "sts": "available",
+    "support": "available",
+    "swf": "available",
+    "transcribe": "available"
+  },
+  "version": "1.3.1.dev"
+}
+```
+
+localstackのコンテナに入って操作してみる。  
+S3バケット作成。`awslocal`コマンドを使う。
+
+```
+$ awslocal s3 mb s3://localstack-bucket
+make_bucket: localstack-bucket
+```
+
+terraformから操作してみる。localstackのコンテナからは出る。
+
+`example.tf`を作成。applyする。
+
+```
+// ディレクトリを初期化
+$ terraform init
+
+Initializing the backend...
+
+Successfully configured the backend "local"! Terraform will automatically
+use this backend unless the backend configuration changes.
+
+Initializing provider plugins...
+- Finding latest version of hashicorp/aws...
+- Installing hashicorp/aws v4.45.0...
+- Installed hashicorp/aws v4.45.0 (signed by HashiCorp)
+
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+```
+
+実行計画を確認。
+
+```
+$ terraform plan
+```
+
+適用。
+
+```
+$ terraform apply
+```
+
+#### 構成
+
+Resourceという単位で各種リソースを作成できる。  
+Moduleはサービスに必要となるResourceを一括で定義できる。変動する値は変数化される。  
+
