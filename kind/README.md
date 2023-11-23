@@ -265,3 +265,15 @@ sample-service-go-5889644db8-8km84      1m           5Mi
 sample-service-js-589c4b65f4-vcv8m      1m           8Mi             
 sample-service-nginx-6d989844fc-rpccg   1m           1Mi             
 ```
+
+grpc サーバーを追加してみる。health エンドポイントを用意していないので、deployment の livenessProbe, readinessProbe は設定しない。
+
+```sh
+$ kubectl get po                                                                                            
+NAME                                    READY   STATUS    RESTARTS   AGE
+sample-service-go-5889644db8-8km84      1/1     Running   0          123m
+sample-service-grpc-6db799f6cb-x5gjw    1/1     Running   0          2s
+sample-service-js-589c4b65f4-vcv8m      1/1     Running   0          123m
+sample-service-nginx-6d989844fc-rpccg   1/1     Running   0          123m
+```
+

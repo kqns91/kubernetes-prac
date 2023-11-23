@@ -5,6 +5,11 @@
 replicaCount: 1
 
 image:
+  grpc:
+    repository: sample-service-grpc
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
   golang:
     repository: sample-service-go
     pullPolicy: IfNotPresent
