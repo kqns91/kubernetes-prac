@@ -277,3 +277,7 @@ sample-service-js-589c4b65f4-vcv8m      1/1     Running   0          123m
 sample-service-nginx-6d989844fc-rpccg   1/1     Running   0          123m
 ```
 
+go サーバーに grpc にアクセスするエンドポイントを追加した。
+/go を http://sample-service-go:8080/ にルーティングしていたが、クラスターの /go/sample にアクセスした場合に、go サーバーに /sample ではなく、/go/sample できてしまうため、http://sample-service-go:8080/go にルーティングするようにした。
+
+nginx -> go -> grpc を実現した。

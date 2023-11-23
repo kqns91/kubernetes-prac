@@ -14,8 +14,19 @@ type handler struct {
 	pb.UnimplementedHelloWorldServer
 }
 
-func (h *handler) Hello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+func (h *handler) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
 	return &pb.HelloReply{Message: fmt.Sprintf("Hello %s", in.Name)}, nil
+}
+
+func loggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	log.Printf("Received request: %v", info.FullMethod)
+	resp, err := handler(ctx, req)
+	if err != nil {
+		log.Printf("Error handling request: %v", err)
+	} else {
+		log.Printf("Sending response: %v", resp)
+	}
+	return resp, err
 }
 
 func main() {
@@ -25,8 +36,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(loggingInterceptor))
 	pb.RegisterHelloWorldServer(s, h)
-
 	s.Serve(lis)
 }
