@@ -434,3 +434,80 @@ default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 07:3
 
 ちなみに、ClusterIP を None にしていても、grpc クライアント側のラウンドロビンの設定をなくすと分散されなかったので、それはそれとして必要そう。
 
+さらに、grpc の Pod を増やしてみる。後から増えた分の Pod にも対応できるかの確認。10個にした。
+
+```sh
+kubectl exec dnsutils -- nslookup sample-service-grpc
+Server:         10.96.0.10
+Address:        10.96.0.10#53
+
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.114
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.119
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.117
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.116
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.121
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.120
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.118
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.113
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.122
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.1150
+```
+
+名前解決は大丈夫そう。
+でもリクエストが飛んでいるのは、5つの Pod だけだった。
+
+```sh
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 08:38:48 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 08:38:58 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 08:38:58 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 08:39:08 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:39:08 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 08:39:18 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 08:39:18 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:39:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 08:39:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 08:39:38 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 08:39:38 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 08:39:48 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 08:39:48 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 08:39:58 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:39:58 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 08:40:08 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 08:40:08 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 08:40:18 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:40:18 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 08:40:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 08:40:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 08:40:38 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 08:40:38 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 08:40:48 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:40:48 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 08:40:58 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 08:40:58 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 08:41:08 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:41:08 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 08:41:18 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 08:41:18 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 08:41:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 08:41:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:41:38 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 08:41:38 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 08:41:48 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 08:41:48 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 08:41:58 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:41:58 Received request: /sample.service.HelloWorld/SayHello
+```
+
+これに対応したい。できないと auto scale に対応できない。
+
+
