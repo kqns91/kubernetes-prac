@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: "sample-service-grpc"
 spec:
-  type: {{ .Values.service.type }}
+  clusterIP: None
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http

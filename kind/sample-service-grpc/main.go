@@ -20,12 +20,12 @@ func (h *handler) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloR
 
 func loggingInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	log.Printf("Received request: %v", info.FullMethod)
+
 	resp, err := handler(ctx, req)
 	if err != nil {
 		log.Printf("Error handling request: %v", err)
-	} else {
-		log.Printf("Sending response: %v", resp)
 	}
+
 	return resp, err
 }
 

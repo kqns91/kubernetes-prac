@@ -4,7 +4,8 @@ metadata:
   name: "sample-service-grpc"
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  # replicas: {{ .Values.replicaCount }}
+  replicas: 5
   {{- end }}
   selector:
     matchLabels:

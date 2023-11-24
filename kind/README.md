@@ -281,3 +281,156 @@ go サーバーに grpc にアクセスするエンドポイントを追加し�
 /go を http://sample-service-go:8080/ にルーティングしていたが、クラスターの /go/sample にアクセスした場合に、go サーバーに /sample ではなく、/go/sample できてしまうため、http://sample-service-go:8080/go にルーティングするようにした。
 
 nginx -> go -> grpc を実現した。
+
+grpc の replicas を 5 にして、go サーバー経由でリクエストを送るが、リクエストが分散されていない。
+
+```sh
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:09 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:19 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:19 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:29 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:29 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:39 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:39 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:49 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:49 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:59 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:48:59 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:49:09 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-krndv sample-service-helm 2023/11/23 13:49:09 Received request: /sample.service.HelloWorld/SayHello
+```
+
+リクエストを分散させてみる。
+
+参考：https://christina04.hatenablog.com/entry/grpc-client-side-lb
+
+
+grpc の client 生成時に、resolver を設定する。
+
+```go
+resolver.SetDefaultScheme("dns")
+conn, err := grpc.Dial("sample-service-grpc:8080", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`))
+```
+
+分散されなかった。。
+
+ingress でできるかもしれない。
+
+https://www.amazon.co.jp/Kubernetes%E3%81%AE%E7%9F%A5%E8%AD%98%E5%9C%B0%E5%9B%B3-%E2%80%94%E2%80%94-%E7%8F%BE%E5%A0%B4%E3%81%A7%E3%81%AE%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E6%9C%AC%E7%95%AA%E9%81%8B%E7%94%A8%E3%81%BE%E3%81%A7-%E9%9D%92%E5%B1%B1-%E7%9C%9F%E4%B9%9F/dp/4297135736/ref=sr_1_1?adgrpid=150201939336&hvadid=665617000696&hvdev=c&hvlocphy=1028853&hvnetw=g&hvqmt=e&hvrand=1998024573929357799&hvtargid=kwd-2118030279282&hydadcr=27490_14701104&jp-ad-ap=0&keywords=kubernetes+%E7%9F%A5%E8%AD%98%E5%9C%B0%E5%9B%B3&qid=1700757269&sr=8-1
+
+のコラムより
+
+> 9RPC通信の負荷分散においては、9RPCが使うHTTP2通信の特性から注 意しなければならない点があります。
+従来のHTTP1.1では1つのサーバと並列して複数の通信をする際、複数の TCP接続を行っていました。TCP通信は接続の確立処理や誤り検出、再送機 能を備えており、接続本数が増えるにつれてサーバ側の消費する計算リソー スが大きくなります。
+一方、HTTP2通信ではこのコストを削減するために、TCP接続を1つのサー バに対して1つにし、単一のTCP接続の中で並行して通信するようにしまし た。この手法はTCP通信の処理コストを抑える一方、ロードバランサが通信 を割り振る対象のサーバを増やしても既存のクライアントが同じサーバと通 信し続け、負荷が分散しないという問題を発生させます。
+この問題に対してはいくつかの解決方法がありますが、HTTP2に対応した ロードバランサを使用するとクライアント側/サーバ側両方ともに変更を加
+えることなく問題を解決できます。 HTTP2に対応したロードバランサを使用するとクライアントからロードバ
+ランサにRPCを発行し、ロードバランサからバックエンドにそのRPCを伝 播させます。このときクライアントとバックエンドは直接TCP通信によって 接続されないため、先ほど挙げた負荷分散についての問題を克服できます。
+Kubernetesの| n9ressにおいても使用しているロードバランサがHTTP2 に対応していれば、アノテーションやカスタムリソースを用いてHTTP2通信
+のロードバランシングを設定できます。詳しい設定方法は各|n9ressコント ローラのドキュメントを参照してください。たとえばNGINX In9ress ControUerでは|n9ressリソースにnginx.ingress.kubernetes.io/backend-
+protocol : "GRPC''アノテーションを付与してHTTP2機能を有効にします。
+
+ingress が何者か分かってない。
+
+Service は L4 ロードバランサーで、Ingress は L7 ロードバランサーなので、リソースとして分けられている。
+
+ingress リソースと ingress controller がある。
+ingress リソースが k8s に登録された際に、ingress controller がL7 ロードバランサーの設定や、Nginx の設定を変更してリロードを実施するなどの何らかの処理を行う。
+
+ingress にも種類がある。以下はよく使われるもの。
+- GKE Ingress
+- Nginx Ingress
+
+ちょっと Ingress の勉強途中だけど、別の方法で対応できそうぽい。
+
+参考：https://techdozo.dev/grpc-load-balancing-on-kubernetes-using-headless-service/
+
+> What is Headless Service ?
+>> Luckily, Kubernetes allows clients to discover pod IPs through DNS lookups. Usually, when you perform a DNS lookup for a service, the DNS server returns a single IP — the service’s cluster IP. But if you tell Kubernetes you don’t need a cluster IP for your service (you do this by setting the clusterIP field to None in the service specification ), the DNS server will return the pod IPs instead of the single service IP. Instead of returning a single DNS A record, the DNS server will return multiple A records for the service, each pointing to the IP of an individual pod backing the service at that moment. Clients can therefore do a simple DNS A record lookup and get the IPs of all the pods that are part of the service. The client can then use that information to connect to one, many, or all of them.
+>> Setting the clusterIP field in a service spec to None makes the service headless, as Kubernetes won’t assign it a cluster IP through which clients could connect to the pods backing it.
+
+ClusterIP を使っているのが悪いかも。
+
+```yaml
+# 変更前
+apiVersion: v1
+kind: Service
+metadata:
+  name: "sample-service-grpc"
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: "sample-service-grpc"
+```
+
+ClusterIP を None にする。  
+これにより、DNSサーバーは単一のサービスIPの代わりにポッドIPを返すらしい。
+
+```yaml
+# 変更後
+apiVersion: v1
+kind: Service
+metadata:
+  name: "sample-service-grpc"
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: "sample-service-grpc"
+```
+
+名前解決の結果もそうなってそう。
+
+```sh
+kubectl exec dnsutils -- nslookup sample-service-grpc
+Server:         10.96.0.10
+Address:        10.96.0.10#53
+
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.117
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.114
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.115
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.113
+Name:   sample-service-grpc.default.svc.cluster.local
+Address: 10.244.0.116
+```
+
+```sh
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 07:30:45 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:30:45 | 200 |       2.098ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:30:45 | 200 |    2.363834ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 07:30:45 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 07:30:55 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 07:30:55 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:30:55 | 200 |    7.400708ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:30:55 | 200 |   12.730125ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 07:31:05 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 07:31:05 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:31:05 | 200 |    1.613125ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:31:05 | 200 |    2.159209ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-grpc-6db799f6cb-5n2d2 sample-service-helm 2023/11/24 07:31:15 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:31:15 | 200 |    3.743666ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:31:15 | 200 |    4.533042ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-grpc-6db799f6cb-8shf4 sample-service-helm 2023/11/24 07:31:15 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:31:25 | 200 |    2.446458ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-go-765975f4-np9c7 sample-service-helm [GIN] 2023/11/24 - 07:31:25 | 200 |    5.501125ms |      10.244.0.1 | GET      "/go/sample"
+default sample-service-grpc-6db799f6cb-sxjqn sample-service-helm 2023/11/24 07:31:25 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-nb5d2 sample-service-helm 2023/11/24 07:31:25 Received request: /sample.service.HelloWorld/SayHello
+```
+
+ログ的にも良さそう。ClusterIP がないことによる他の影響を調べる必要はありそうだが、とりあえず分散はできた。
+
+ちなみに、ClusterIP を None にしていても、grpc クライアント側のラウンドロビンの設定をなくすと分散されなかったので、それはそれとして必要そう。
+
