@@ -17,6 +17,7 @@ type handler struct {
 }
 
 func (h *handler) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	time.Sleep(15 * time.Second)
 	return &pb.HelloReply{Message: fmt.Sprintf("Hello %s", in.Name)}, nil
 }
 

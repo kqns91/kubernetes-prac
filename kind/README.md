@@ -607,3 +607,7 @@ default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:1
 10秒で最初のコネクションが切断されて、再度名前解決が行われ、追加された Pod にもリクエストが飛ぶようになっている。
 `MaxConnectionAge`の最適な値は、どれくらいだろうか。
 
+grpc 側の処理に time.Sleep(15 * time.Second) を入れてみたが、10秒で切断されることはなさそう。
+処理中のものは捌いてから、リセットしてくれてそう。流石にか。
+
+
