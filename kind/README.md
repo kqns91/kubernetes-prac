@@ -510,4 +510,100 @@ default sample-service-grpc-6db799f6cb-qc9jx sample-service-helm 2023/11/24 08:4
 
 これに対応したい。できないと auto scale に対応できない。
 
+https://christina04.hatenablog.com/entry/grpc-client-side-lb#:~:text=%E3%81%8C%E3%81%82%E3%82%8A%E3%81%BE%E3%81%99%E3%80%82-,DNS%E3%81%AEresolve%E3%82%BF%E3%82%A4%E3%83%9F%E3%83%B3%E3%82%B0%E3%81%AF%EF%BC%9F,-Pod%E3%81%AF%E9%A0%BB%E7%B9%81
+
+ここの話がそれっぽい。
+
+再度名前解決が行われるのは、デフォルトだと 30 分後。ポーリングで行っているらしく、これも将来的には辞めようとしているらしい。サーバー側で、定期的にコネクションをリセットする実装を入れるべきらしい。
+
+```go
+grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionAge: 10 * time.Second,
+		}))
+```
+
+interceptor を追加した。10秒は過剰なんだろうが、検証のため短めに設定。
+
+スケールアウトの確認がしづらいので grpc の replicas を 1 に戻してから、再度増やしてみる。
+
+```sh
+kubectl get po                                                                                            
+NAME                                    READY   STATUS    RESTARTS   AGE
+dnsutils                                1/1     Running   0          19h
+sample-service-go-765975f4-zzqcf        1/1     Running   0          76s
+sample-service-grpc-6db799f6cb-mntmg    1/1     Running   0          76s
+sample-service-js-589c4b65f4-vqz49      1/1     Running   0          76s
+sample-service-nginx-6d989844fc-5cbms   1/1     Running   0          76s
+```
+
+リクエストを送って、ログをみとく。
+
+```sh
+ stern -A sample-service-grpc
++ default sample-service-grpc-6db799f6cb-mntmg › sample-service-helm
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:11:33 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:12:33 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:12:33 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:12:43 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:12:43 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:12:53 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:12:53 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:13:03 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:13:03 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:13:13 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:13:13 Received request: /sample.service.HelloWorld/SayHello
+```
+
+ここから 5 つに増やしてみる。
+
+```sh
+kubectl get po                                                                                            
+NAME                                    READY   STATUS    RESTARTS   AGE
+dnsutils                                1/1     Running   0          19h
+sample-service-go-765975f4-zzqcf        1/1     Running   0          2m46s
+sample-service-grpc-6db799f6cb-2n9cr    1/1     Running   0          5s
+sample-service-grpc-6db799f6cb-6lp67    1/1     Running   0          5s
+sample-service-grpc-6db799f6cb-mntmg    1/1     Running   0          2m46s
+sample-service-grpc-6db799f6cb-p67t2    1/1     Running   0          5s
+sample-service-grpc-6db799f6cb-vkf5k    1/1     Running   0          5s
+sample-service-js-589c4b65f4-vqz49      1/1     Running   0          2m46s
+sample-service-nginx-6d989844fc-5cbms   1/1     Running   0          2m46s
+```
+
+リクエストを送って、ログ。
+
+```sh
++ default sample-service-grpc-6db799f6cb-2n9cr › sample-service-helm
++ default sample-service-grpc-6db799f6cb-p67t2 › sample-service-helm
++ default sample-service-grpc-6db799f6cb-vkf5k › sample-service-helm
++ default sample-service-grpc-6db799f6cb-6lp67 › sample-service-helm
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:14:03 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:14:03 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:14:13 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:14:13 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:14:23 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-p67t2 sample-service-helm 2023/11/24 09:14:23 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-6lp67 sample-service-helm 2023/11/24 09:14:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:14:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-2n9cr sample-service-helm 2023/11/24 09:14:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-p67t2 sample-service-helm 2023/11/24 09:14:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:14:28 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-6lp67 sample-service-helm 2023/11/24 09:14:29 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:14:29 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:14:29 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-2n9cr sample-service-helm 2023/11/24 09:14:29 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:14:33 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-6lp67 sample-service-helm 2023/11/24 09:14:33 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-mntmg sample-service-helm 2023/11/24 09:14:43 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-6lp67 sample-service-helm 2023/11/24 09:14:43 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-6lp67 sample-service-helm 2023/11/24 09:14:53 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:14:53 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-p67t2 sample-service-helm 2023/11/24 09:15:03 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-6lp67 sample-service-helm 2023/11/24 09:15:03 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-2n9cr sample-service-helm 2023/11/24 09:15:13 Received request: /sample.service.HelloWorld/SayHello
+default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:15:13 Received request: /sample.service.HelloWorld/SayHello
+```
+
+10秒で最初のコネクションが切断されて、再度名前解決が行われ、追加された Pod にもリクエストが飛ぶようになっている。
+`MaxConnectionAge`の最適な値は、どれくらいだろうか。
 

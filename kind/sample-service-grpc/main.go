@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	pb "github.com/kqns91/kubernetes-prac/kind/sample-proto/gen/go/protobuf"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type handler struct {
@@ -36,7 +38,11 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(loggingInterceptor))
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(loggingInterceptor),
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionAge: 10 * time.Second,
+		}))
 	pb.RegisterHelloWorldServer(s, h)
 	s.Serve(lis)
 }
