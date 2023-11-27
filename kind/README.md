@@ -627,4 +627,23 @@ default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:1
 grpc 側の処理に time.Sleep(15 * time.Second) を入れてみたが、10秒で切断されることはなさそう。
 処理中のものは捌いてから、リセットしてくれてそう。流石にか。
 
+hpa してみた。
+
+grpc の処理に cpu をめちゃ使う処理を追加して、スケールアウトさせる。
+
+```sh
+$ kubectl get hpa -w                                                                                        
+NAME                  REFERENCE                        TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+sample-service-grpc   Deployment/sample-service-grpc   <unknown>/80%   1         10        1          17s
+sample-service-grpc   Deployment/sample-service-grpc   0%/80%          1         10        1          30s
+sample-service-grpc   Deployment/sample-service-grpc   127%/80%        1         10        1          75s
+sample-service-grpc   Deployment/sample-service-grpc   127%/80%        1         10        2          90s
+sample-service-grpc   Deployment/sample-service-grpc   1%/80%          1         10        2          105s
+sample-service-grpc   Deployment/sample-service-grpc   107%/80%        1         10        2          2m
+sample-service-grpc   Deployment/sample-service-grpc   175%/80%        1         10        3          2m15s
+sample-service-grpc   Deployment/sample-service-grpc   97%/80%         1         10        5          2m30s
+sample-service-grpc   Deployment/sample-service-grpc   28%/80%         1         10        5          2m45s
+```
+
+増えた。けど、grpc サーバー側の MaxConnectionAge の設定をしていないと、新しい Pod にリクエストが飛んでなかった。。
 

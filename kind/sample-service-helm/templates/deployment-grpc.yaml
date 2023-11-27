@@ -5,7 +5,7 @@ metadata:
 spec:
   {{- if not .Values.autoscaling.enabled }}
   # replicas: {{ .Values.replicaCount }}
-  replicas: 5
+  replicas: 1
   {{- end }}
   selector:
     matchLabels:
@@ -37,7 +37,9 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            requests:
+              cpu: 200m
+              memory: 16Mi
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
