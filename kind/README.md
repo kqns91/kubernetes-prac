@@ -643,7 +643,15 @@ sample-service-grpc   Deployment/sample-service-grpc   107%/80%        1        
 sample-service-grpc   Deployment/sample-service-grpc   175%/80%        1         10        3          2m15s
 sample-service-grpc   Deployment/sample-service-grpc   97%/80%         1         10        5          2m30s
 sample-service-grpc   Deployment/sample-service-grpc   28%/80%         1         10        5          2m45s
+...
+sample-service-grpc   Deployment/sample-service-grpc   142%/80%        1         10        10         3m1s
+sample-service-grpc   Deployment/sample-service-grpc   0%/80%          1         10        10         3m16s
+sample-service-grpc   Deployment/sample-service-grpc   0%/80%          1         10        10         8m2s
+sample-service-grpc   Deployment/sample-service-grpc   0%/80%          1         10        1          8m17s
+sample-service-grpc   Deployment/sample-service-grpc   0%/80%          1         10        1          8m32s
+sample-service-grpc   Deployment/sample-service-grpc   0%/80%          1         10        1          9m2s
 ```
 
-増えた。けど、grpc サーバー側の MaxConnectionAge の設定をしていないと、新しい Pod にリクエストが飛んでなかった。。
+増えた。負荷が下がってから5分でスケールインもしてそう。
+けど、grpc サーバー側の MaxConnectionAge の設定をしていないと、新しい Pod にリクエストが飛んでなかった。。
 
