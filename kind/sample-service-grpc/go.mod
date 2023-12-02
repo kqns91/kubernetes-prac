@@ -3,7 +3,7 @@ module github.com/kqns91/kubernetes-prac/kind/sample-service-grpc
 go 1.21.4
 
 require (
-	github.com/kqns91/kubernetes-prac/kind/sample-proto v0.0.0-20231123120438-03b248584c36
+	github.com/kqns91/kubernetes-prac/kind/sample-proto v0.0.0-20231128145856-41488e1849ad
 	google.golang.org/grpc v1.59.0
 )
 
