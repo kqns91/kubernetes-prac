@@ -18,21 +18,24 @@ type handler struct {
 }
 
 func (h *handler) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	go func(ctx context.Context) {
-		x := 246.0
-		defer func() {
-			fmt.Printf("x: %v\n", x)
-		}()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
+	if in.Name == "scale" {
+		go func(ctx context.Context) {
+			x := 246.0
+			defer func() {
+				fmt.Printf("x: %v\n", x)
+			}()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+				}
+				x += math.Sqrt(x)
 			}
-			x += math.Sqrt(x)
-		}
-	}(ctx)
-	time.Sleep(7 * time.Second)
+		}(ctx)
+		time.Sleep(7 * time.Second)
+	}
+
 	return &pb.HelloReply{Message: fmt.Sprintf("Hello %s", in.Name)}, nil
 }
 

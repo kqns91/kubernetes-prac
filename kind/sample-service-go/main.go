@@ -33,7 +33,9 @@ func main() {
 	})
 
 	g.GET("/sample", func(ctx *gin.Context) {
-		response, err := c.SayHello(ctx, &pb.HelloRequest{Name: "kqns91"})
+		name := ctx.heQuery("name")
+
+		response, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
