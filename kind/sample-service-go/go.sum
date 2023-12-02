@@ -33,8 +33,8 @@ github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHm
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZXnvk=
 github.com/klauspost/cpuid/v2 v2.2.4/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
-github.com/kqns91/kubernetes-prac/kind/sample-proto v0.0.0-20231123120438-03b248584c36 h1:/13K7fSXQaHXRMWpzq+YwBC4Vr1ECgSYdOiMkWKgovs=
-github.com/kqns91/kubernetes-prac/kind/sample-proto v0.0.0-20231123120438-03b248584c36/go.mod h1:NuF2NLcC1LN2BIDc9NJHRHKoo8U08+3SFXnN1YXK76Q=
+github.com/kqns91/kubernetes-prac/kind/sample-proto v0.0.0-20231128145856-41488e1849ad h1:cWPwlKDT3azrde8kq3McGZ1Ge2TdhFA3QcQbuDEgdbg=
+github.com/kqns91/kubernetes-prac/kind/sample-proto v0.0.0-20231128145856-41488e1849ad/go.mod h1:NuF2NLcC1LN2BIDc9NJHRHKoo8U08+3SFXnN1YXK76Q=
 github.com/leodido/go-urn v1.2.4 h1:XlAE/cm/ms7TE/VMVoduSpNBoyc2dOxHs5MZSwAN63Q=
 github.com/leodido/go-urn v1.2.4/go.mod h1:7ZrI8mTSeBSHl/UaRyKQW1qZeMgak41ANeCNaVckg+4=
 github.com/mattn/go-isatty v0.0.19 h1:JITubQf0MOLdlGRuRq+jtsDlekdYPia9ZFsB8h/APPA=

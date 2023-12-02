@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/kqns91/kubernetes-prac/kind/sample-proto v0.0.0-20231123120438-03b248584c36
+	github.com/kqns91/kubernetes-prac/kind/sample-proto v0.0.0-20231128145856-41488e1849ad
 	google.golang.org/grpc v1.59.0
 )
 
