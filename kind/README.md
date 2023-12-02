@@ -122,7 +122,11 @@ NAME                                                  READY   STATUS    RESTARTS
 sample-service-sample-service-helm-6854d8b88b-vjlrt   1/1     Running   0          3s
 ```
 
-できた。追加でちょっと遊んでみる。
+できた。
+
+## 追加で遊んでみる
+
+### サーバー追加しルーティング
 
 go サーバーの deployment を追加した。
 
@@ -223,9 +227,9 @@ sample-service-nginx-6d989844fc-rpccg   1/1     Running   0          6m47s
 /go は go サーバー、/js は js サーバー、/ は nginx が返すようにできた。
 
 
-メトリクスサーバーを入れてみる。
+### メトリクスサーバー導入
 
-参考：https://qiita.com/dingtianhongjie/items/a8ddc2d7f7b57291a13e#%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89
+参考：https://artifacthub.io/packages/helm/metrics-server/metrics-server
 
 ```sh
 helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server
@@ -265,6 +269,8 @@ sample-service-go-5889644db8-8km84      1m           5Mi
 sample-service-js-589c4b65f4-vcv8m      1m           8Mi             
 sample-service-nginx-6d989844fc-rpccg   1m           1Mi             
 ```
+
+### gRPC サーバー追加とロードバランシング
 
 grpc サーバーを追加してみる。health エンドポイントを用意していないので、deployment の livenessProbe, readinessProbe は設定しない。
 
@@ -627,7 +633,7 @@ default sample-service-grpc-6db799f6cb-vkf5k sample-service-helm 2023/11/24 09:1
 grpc 側の処理に time.Sleep(15 * time.Second) を入れてみたが、10秒で切断されることはなさそう。
 処理中のものは捌いてから、リセットしてくれてそう。流石にか。
 
-hpa してみた。
+#### 実際に HPA で Pod を増加させる
 
 grpc の処理に cpu をめちゃ使う処理を追加して、スケールアウトさせる。
 
