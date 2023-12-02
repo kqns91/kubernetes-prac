@@ -15,11 +15,6 @@ image:
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
-  js:
-    repository: sample-service
-    pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "latest"
   nginx:
     repository: sample-service-nginx
     pullPolicy: IfNotPresent

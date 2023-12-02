@@ -12,10 +12,6 @@ import (
 )
 
 func main() {
-	// gin でサーバー立てる
-	r := gin.Default()
-
-	// sample-service-grpc に接続
 	resolver.SetDefaultScheme("dns")
 	conn, err := grpc.Dial("sample-service-grpc:8080",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -27,9 +23,15 @@ func main() {
 	defer conn.Close()
 	c := pb.NewHelloWorldClient(conn)
 
+	r := gin.Default()
 	g := r.Group("/go")
 
-	// アクセスエンドポイントを作成
+	g.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+	})
+
 	g.GET("/sample", func(ctx *gin.Context) {
 		response, err := c.SayHello(ctx, &pb.HelloRequest{Name: "kqns91"})
 		if err != nil {
@@ -37,12 +39,6 @@ func main() {
 			return
 		}
 		ctx.JSON(http.StatusOK, response)
-	})
-
-	r.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
 	})
 
 	if err := r.Run(":8080"); err != nil {

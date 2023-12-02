@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: "sample-service-go"
 spec:
-  type: {{ .Values.service.type }}
+  type: ClusterIP
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http
