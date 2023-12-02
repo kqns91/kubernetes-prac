@@ -1,4 +1,4 @@
-module github.com/kqns91/kubernetes-prac/kind/sample-proto
+module github.com/kqns91/kubernetes-prac/kind/sample-proto/gen/go/protobuf
 
 go 1.21.4
 
