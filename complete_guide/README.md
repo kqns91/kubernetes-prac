@@ -57,6 +57,38 @@
 ### Service APIs カテゴリ
 
 コンテナのサービスディスカバリや、クラスタの外部からもアクセス可能なエンドポイントを提供するためのリソース。
+L4 ロードバランシングを呈する `Service` と、L7 ロードバランシングを提供する `Ingress` がある。
+
+- Service
+    - 受信したトラフィックを、複数の Pod へロードバランシングする。
+    - サービスディスカバリ
+        - 環境変数を利用したサービスディスカバリ
+        - DNS A レコードを利用したサービスディスカバリ
+        - DNS SRV レコードを利用したサービスディスカバリ
+    - Node Local DNS Cache
+        - Node に DNS キャッシュを持たせることで、クラスタ内の DNS クエリを高速化する。
+    - ClusterIP Service
+        - クラスタ内ロードバランサー。
+        - ClusterIP 当ての通信は kube-proxy が Pod に転送を行う。
+        - IP アドレスを静的に指定することも可能。
+        - すでに作成する Service に対して ClusterIP を変更することはできない。
+        - セッションアフィニティを有効にすることで、同じ Pod に対しての通信を維持することができる。
+    - ExternalIP Service
+        - type は ClusterIP。spec.externalIPs で Kubernetes Node の IP アドレスを指定する。
+        - 特定の Kubernetes Node の IP アドレス:Port で受信したトラフィックをコンテナに転送する。
+    - NodePort Service
+        - 全ての Kubernetes Node の IP アドレス:NodePort で受信したトラフィックをコンテナに転送する。
+        - 30000-32767 の範囲で指定する。
+        - spec.externalTrafficPolicy の設定により、クラスタ外からのトラフィックを 別の Node の Pod に転送するかどうかを指定できる。
+    - LoadBalancer Service
+        - Kubernetes クラスタ外のロードバランサに外部疎通性のある仮想 IP を払い出す。
+        - GCP/AWS/Azure/OpenStack などのプロバイダーで利用できるため、障害に強い。
+        - デフォルトだとグローバルに公開されるため、spec.loadBalancerSourceRanges に接続を許可する送信元ネットワークを指定することでプロバイダのファイアウォール機能を利用したアクセス制御が可能。
+    - Topology-aware Service routing
+        - 通常 Service の転送先は Region や Availability Zone を考慮されない。ノード数が多すぎるとパフォーマンスが低下する。
+        - 同一ノード、同一ゾーン、いずれかの Pod というような優先度指定ができる。
+        - 送信元 IP アドレスは取得できない。
+
 
 ### Cluster APIs カテゴリ
 
