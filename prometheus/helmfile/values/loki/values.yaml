@@ -1,0 +1,14 @@
+# values/loki/values.yaml
+loki:
+  enabled: true
+  persistence:
+    enabled: true
+    storageClassName: "fast-storage"
+    size: 10Gi
+
+promtail:
+  enabled: true
+  persistence:
+    enabled: true
+    storageClassName: "fast-storage"
+    size: 10Gi

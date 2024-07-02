@@ -65,3 +65,50 @@ k9s でポートフォワードして、Prometheus と Grafana にアクセス�
 
 ![](./images/スクリーンショット%202024-06-25%200.07.31.png)
 ![](./images/スクリーンショット%202024-06-25%200.07.04.png)
+
+#### ログの収集
+
+Fluentd をデプロイするための helmfile を用意。ディレクトリ構造は以下。
+
+```sh
+├── helmfile.yaml
+├── releases
+│   ├── fluentd.yaml
+│   └── prometheus-stack.yaml
+└── values
+    ├── fluentd
+    │   └── values.yaml
+    └── prometheus-stack
+        └── values.yaml
+```
+
+```sh
+# helmfile.yaml
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+
+helmfiles:
+  - releases/fluentd.yaml
+  - releases/prometheus-stack.yaml
+```
+
+```sh
+# releases/fluentd.yaml
+releases:
+  - name: fluentd
+    namespace: logging
+    chart: bitnami/fluentd
+    version: "5.10.1"
+    values:
+      - ../values/fluentd/values.yaml
+```
+
+適用する。Ready までちょっと時間かかった。
+
+```sh
+helmfile apply
+```
+

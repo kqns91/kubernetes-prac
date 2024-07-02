@@ -1,0 +1,7 @@
+releases:
+  - name: fluentd
+    namespace: logging
+    chart: bitnami/fluentd
+    version: "5.10.1"
+    values:
+      - ../values/fluentd/values.yaml
