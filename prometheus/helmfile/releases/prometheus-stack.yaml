@@ -1,7 +1,8 @@
 releases:
   - name: kube-prometheus-stack
-    namespace: prometheus
+    namespace: monitoring
     chart: prometheus-community/kube-prometheus-stack
     version: 60.3.0
     values:
       - ../values/prometheus-stack/values.yaml
+    installed: true

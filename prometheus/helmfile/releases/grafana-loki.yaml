@@ -1,7 +1,7 @@
 releases:
   - name: loki
-    namespace: logging
-    chart: grafana/loki
-    version: "3.0.0"
+    namespace: monitoring
+    chart: grafana/loki-stack
     values:
       - ../values/loki/values.yaml
+    installed: true

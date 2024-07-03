@@ -1,14 +1,20 @@
-# values/loki/values.yaml
 loki:
-  enabled: true
+  config:
+    table_manager:
+      retention_deletes_enabled: true
+      retention_period: 168h # 7 days
   persistence:
     enabled: true
-    storageClassName: "fast-storage"
     size: 10Gi
-
-promtail:
-  enabled: true
-  persistence:
-    enabled: true
-    storageClassName: "fast-storage"
-    size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+  service:
+    type: ClusterIP
+  securityContext:
+    runAsUser: 10001
+  replicas: 1

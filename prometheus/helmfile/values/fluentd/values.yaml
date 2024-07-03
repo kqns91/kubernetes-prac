@@ -1,1 +1,22 @@
-
+fluentd:
+  configMaps:
+    output.conf: |
+      <match **>
+        @type loki
+        url http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+        admin:kqns91
+      </match>
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    size: 10Gi
+  service:
+    type: ClusterIP
+  securityContext:
+    runAsUser: 10001
